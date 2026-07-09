@@ -1,0 +1,57 @@
+{
+  "collections": {
+    "users": {
+      "description": "Store registered user profiles and core win/loss statistics",
+      "schema": {
+        "uid": "string",
+        "username": "string",
+        "email": "string",
+        "createdAt": "timestamp",
+        "lastSeenAt": "timestamp",
+        "stats": {
+          "wins": "number",
+          "losses": "number",
+          "draws": "number"
+        }
+      }
+    },
+    "games": {
+      "description": "Store live and concluded chess-integrated-dice matches",
+      "schema": {
+        "id": "string",
+        "creatorId": "string",
+        "creatorName": "string",
+        "whiteId": "string",
+        "whiteName": "string",
+        "blackId": "string",
+        "blackName": "string",
+        "opponentType": "string ('cpu' | 'local' | 'online')",
+        "privacy": "string ('private' | 'public')",
+        "status": "string ('rolling' | 'playing' | 'checkmate' | 'stalemate' | 'insufficient_material' | 'threefold_repetition' | 'fifty_moves_draw' | 'agreed_draw' | 'waiting')",
+        "boardState": "array of cell objects/strings representing the pieces",
+        "history": "array of move records",
+        "turn": "string ('w' | 'b')",
+        "diceRoll": "number | null",
+        "movesRemaining": "number",
+        "movesMadeThisTurn": "number",
+        "lastMove": "object | null",
+        "halfmoveClock": "number",
+        "fullmoveNumber": "number",
+        "whiteKingMoved": "boolean",
+        "whiteRookKMoved": "boolean",
+        "whiteRookQMoved": "boolean",
+        "blackKingMoved": "boolean",
+        "blackRookKMoved": "boolean",
+        "blackRookQMoved": "boolean",
+        "whiteTurnCount": "number",
+        "blackTurnCount": "number",
+        "statusMessage": "string",
+        "whiteCaptures": "array of strings",
+        "blackCaptures": "array of strings",
+        "winner": "string ('w' | 'b' | 'draw' | null)",
+        "createdAt": "timestamp",
+        "lastActiveAt": "timestamp"
+      }
+    }
+  }
+}

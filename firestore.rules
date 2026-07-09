@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net (default-deny catch-all)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Reusable global helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Users Collection Rules ---
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // --- Games Collection Rules ---
+    match /games/{gameId} {
+      allow get: if isSignedIn() && (
+        resource.data.privacy == 'public' ||
+        resource.data.creatorId == request.auth.uid ||
+        resource.data.whiteId == request.auth.uid ||
+        resource.data.blackId == request.auth.uid ||
+        (resource.data.opponentType == 'online' && resource.data.status == 'waiting')
+      );
+
+      allow list: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        resource.data.blackId == request.auth.uid ||
+        resource.data.privacy == 'public' ||
+        (resource.data.opponentType == 'online' && resource.data.status == 'waiting')
+      );
+
+      // Validate create game
+      allow create: if isSignedIn()
+        && request.resource.data.creatorId == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.status in ['waiting', 'rolling', 'playing']
+        && request.resource.data.privacy in ['private', 'public']
+        && request.resource.data.opponentType in ['cpu', 'local', 'online'];
+
+      // Validate update game
+      allow update: if isSignedIn() && (
+        // Must be the owner, one of the registered players, or a player joining an open lobby
+        resource.data.creatorId == request.auth.uid ||
+        resource.data.whiteId == request.auth.uid ||
+        resource.data.blackId == request.auth.uid ||
+        (
+          resource.data.opponentType == 'online' && 
+          resource.data.status == 'waiting' && 
+          (
+            request.resource.data.blackId == request.auth.uid || 
+            request.resource.data.whiteId == request.auth.uid
+          )
+        )
+      );
+
+      // Only the creator is permitted to delete their match
+      allow delete: if isSignedIn() && resource.data.creatorId == request.auth.uid;
+    }
+  }
+}

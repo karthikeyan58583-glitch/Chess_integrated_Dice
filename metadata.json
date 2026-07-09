@@ -1,0 +1,6 @@
+{
+  "name": "Chess Integrated Dice",
+  "description": "A unique chess game variant featuring an integrated 3D dice roll to determine the number of moves a player must make on their turn, with custom check-restriction mechanics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
