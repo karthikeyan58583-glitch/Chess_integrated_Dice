@@ -286,10 +286,8 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
           )}
         </div>
         <div className="text-slate-400 select-none">
-          {disabled ? (
+          {disabled && (
             <span className="text-slate-500">Wait for turn activation</span>
-          ) : (
-            <span className="text-emerald-400 font-semibold">Ready</span>
           )}
         </div>
       </div>
