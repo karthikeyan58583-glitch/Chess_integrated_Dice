@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Cpu, Users, Swords, Trophy, HelpCircle, ArrowRight, Sparkles, Copy, Check } from 'lucide-react';
+import { Users, Swords, ArrowRight, Sparkles, Copy, Check, HelpCircle, Trophy } from 'lucide-react';
 
 interface GameListProps {
   onJoinGame: (gameId: string) => void;
@@ -140,42 +140,19 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
       </motion.div>
 
       {/* Main Mode Selection Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        {/* Play CPU */}
-        <motion.div 
-          whileHover={{ y: -4, borderColor: 'rgba(16, 185, 129, 0.3)' }}
-          className="bg-[#262421] border border-[#312e2b] rounded-2xl p-6 flex flex-col justify-between shadow-md transition-colors duration-200"
-        >
-          <div>
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-5 text-indigo-400">
-              <Cpu className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-sans font-extrabold text-white mb-2">Vs Computer AI</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed mb-6">
-              Test your tactics against the Virtual Chess Engine. Perfect for solo practice, quick matches, and training offline.
-            </p>
-          </div>
-          <button
-            onClick={() => onJoinGame('cpu')}
-            className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white rounded-xl font-sans font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow"
-          >
-            <span>Launch Practice</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </motion.div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
         {/* Local Play */}
         <motion.div 
           whileHover={{ y: -4, borderColor: 'rgba(16, 185, 129, 0.3)' }}
           className="bg-[#262421] border border-[#312e2b] rounded-2xl p-6 flex flex-col justify-between shadow-md transition-colors duration-200"
         >
-          <div>
+          <div className="flex-1">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-5 text-amber-400">
               <Users className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-sans font-extrabold text-white mb-2">Pass & Play</h3>
             <p className="text-xs text-zinc-400 leading-relaxed mb-6">
-              Play side-by-side with a friend on the same screen. Full traditional board game layout with zero setup or internet needed.
+              Play side-by-side with a friend on the same screen. Sit together, take turns, zero setup or internet needed.
             </p>
           </div>
           <button
