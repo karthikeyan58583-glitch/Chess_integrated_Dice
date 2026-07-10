@@ -97,7 +97,7 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
   return (
     <div className="max-w-4xl mx-auto px-4 select-none">
       {/* Brand Hero */}
-      <div className="text-center mb-12 relative">
+      <div className="text-center mb-8 relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         
         <h1 className="text-4xl md:text-5xl font-sans font-black tracking-tight text-white mb-4">
@@ -107,27 +107,6 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
           Classic Chess meets dynamic dice mechanics. Roll to determine your moves, strategize under constraint, and conquer the board!
         </p>
       </div>
-
-      {/* Stats Display */}
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.4 }}
-        className="grid grid-cols-3 gap-4 max-w-md mx-auto mb-10 p-4 bg-zinc-900/60 border border-zinc-800 rounded-2xl shadow-lg"
-      >
-        <div className="text-center">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold block">Wins</span>
-          <span className="text-xl font-mono font-extrabold text-emerald-400 mt-0.5 block">{userStats.wins}</span>
-        </div>
-        <div className="text-center border-x border-zinc-800">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold block">Draws</span>
-          <span className="text-xl font-mono font-extrabold text-zinc-300 mt-0.5 block">{userStats.draws}</span>
-        </div>
-        <div className="text-center">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold block">Losses</span>
-          <span className="text-xl font-mono font-extrabold text-rose-400 mt-0.5 block">{userStats.losses}</span>
-        </div>
-      </motion.div>
 
       {/* Main Mode Selection Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
