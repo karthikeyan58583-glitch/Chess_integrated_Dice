@@ -289,7 +289,7 @@ export const ChessBoard: React.FC<ChessBoardProps> = ({
           {disabled ? (
             <span className="text-slate-500">Wait for turn activation</span>
           ) : (
-            <span className="text-emerald-400 font-semibold">Active Board Grid</span>
+            <span className="text-emerald-400 font-semibold">Ready</span>
           )}
         </div>
       </div>

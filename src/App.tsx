@@ -1406,7 +1406,7 @@ export default function App() {
         />
         <footer className="mt-12 py-4 select-none">
           <p className="text-center text-[9px] text-[#989795] font-sans font-extrabold tracking-[0.18em]">
-            DICE CHESS • POWERED BY MODERN ACTIVE LOGIC
+            DICE CHESS
           </p>
         </footer>
       </div>
@@ -1424,7 +1424,7 @@ export default function App() {
         />
         <footer className="mt-12 py-4 select-none">
           <p className="text-center text-[9px] text-[#989795] font-sans font-extrabold tracking-[0.18em]">
-            DICE CHESS • POWERED BY MODERN ACTIVE LOGIC
+            DICE CHESS
           </p>
         </footer>
       </div>
@@ -1453,7 +1453,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-xs md:text-sm font-sans font-extrabold tracking-tight text-white leading-tight">Dice Chess</h1>
-              <p className="text-[8px] text-[#989795] font-sans font-extrabold tracking-[0.12em] leading-none uppercase">Tactical Arena • Active Edition</p>
+              <p className="text-[8px] text-[#989795] font-sans font-extrabold tracking-[0.12em] leading-none uppercase">Tactical Arena</p>
             </div>
           </div>
 
@@ -1769,13 +1769,7 @@ export default function App() {
                     />
                   </div>
 
-                  {/* Status footer inside panel */}
-                  <div className="w-full text-center pt-3 border-t border-[#312e2b]">
-                    <span className="text-[9px] text-[#81b64c] font-sans font-extrabold flex items-center justify-center gap-1.5 uppercase tracking-wider">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
-                      Engine Connected
-                    </span>
-                  </div>
+
                 </div>
               )}
 
@@ -1804,7 +1798,7 @@ export default function App() {
       {/* Professional Footer */}
       <footer className="mt-auto border-t border-[#312e2b] bg-[#262421] py-4 select-none">
         <p className="text-center text-[9px] text-[#989795] font-sans font-extrabold tracking-[0.18em]">
-          DICE CHESS v1.2 • POWERED BY MODERN ACTIVE LOGIC
+          DICE CHESS v1.2
         </p>
       </footer>
     </div>

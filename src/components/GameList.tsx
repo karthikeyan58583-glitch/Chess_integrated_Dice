@@ -100,16 +100,6 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
       <div className="text-center mb-12 relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-4"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Active Logic Tactical Chess</span>
-        </motion.div>
-
         <h1 className="text-4xl md:text-5xl font-sans font-black tracking-tight text-white mb-4">
           DICE <span className="text-emerald-400">CHESS</span>
         </h1>
