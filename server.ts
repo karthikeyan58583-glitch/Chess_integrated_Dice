@@ -265,6 +265,13 @@ async function startServer() {
 
           // If a second player joins, notify both that game is ready and broadcast merged gameState
           if (room.players.white && room.players.black) {
+            if (room.gameState) {
+              room.gameState.status = 'playing';
+              if (room.gameState.statusMessage === 'Share the link above with a friend to start playing!') {
+                room.gameState.statusMessage = "White's Turn (Phase 1: Automatic 1 move. No roll needed!)";
+              }
+            }
+
             room.players.white.send(JSON.stringify({
               type: "opponent_joined"
             }));
