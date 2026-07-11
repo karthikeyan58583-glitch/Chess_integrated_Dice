@@ -637,7 +637,7 @@ export default function App() {
     };
   }, [selectedGameId]);
 
-  // Track state hashes for threefold repetition
+  // Track state hashes for threefold repetition without duplicating on server state syncs
   useEffect(() => {
     if (board.length === 0) return;
     const currentHash = getBoardHash(
@@ -651,8 +651,13 @@ export default function App() {
       blackRookQMoved,
       lastMove
     );
-    setRepetitionHashes(prev => [...prev, currentHash]);
-  }, [board, turn]);
+    setRepetitionHashes(prev => {
+      const historyLength = history?.length || 0;
+      const nextHashes = prev.slice(0, historyLength);
+      nextHashes[historyLength] = currentHash;
+      return nextHashes;
+    });
+  }, [board, turn, history?.length, whiteKingMoved, whiteRookKMoved, whiteRookQMoved, blackKingMoved, blackRookKMoved, blackRookQMoved, lastMove]);
 
   // Synchronize updates locally and broadcast over WebSocket if online
   const updateGameOnCloud = async (fieldsToUpdate: Partial<any>) => {
