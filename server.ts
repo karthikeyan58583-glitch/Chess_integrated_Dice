@@ -191,16 +191,42 @@ async function startServer() {
             } else if (room.playerIds.black === userId) {
               room.players.black = ws;
               assignedColor = 'b';
-            } else if (!room.playerIds.white) {
-              room.playerIds.white = userId;
-              room.players.white = ws;
-              assignedColor = 'w';
-            } else if (!room.playerIds.black) {
-              room.playerIds.black = userId;
-              room.players.black = ws;
-              assignedColor = 'b';
             } else {
-              assignedColor = 'spectator';
+              const isWhiteEmpty = !room.playerIds.white;
+              const isBlackEmpty = !room.playerIds.black;
+
+              if (isWhiteEmpty && isBlackEmpty) {
+                // First player (host) is joining, use their color preference
+                const pref = data.preferredColor || 'random';
+                let chosen: 'w' | 'b';
+                if (pref === 'w') {
+                  chosen = 'w';
+                } else if (pref === 'b') {
+                  chosen = 'b';
+                } else {
+                  chosen = Math.random() < 0.5 ? 'w' : 'b';
+                }
+
+                if (chosen === 'w') {
+                  room.playerIds.white = userId;
+                  room.players.white = ws;
+                  assignedColor = 'w';
+                } else {
+                  room.playerIds.black = userId;
+                  room.players.black = ws;
+                  assignedColor = 'b';
+                }
+              } else if (isWhiteEmpty) {
+                room.playerIds.white = userId;
+                room.players.white = ws;
+                assignedColor = 'w';
+              } else if (isBlackEmpty) {
+                room.playerIds.black = userId;
+                room.players.black = ws;
+                assignedColor = 'b';
+              } else {
+                assignedColor = 'spectator';
+              }
             }
           } else {
             // Fallback to legacy assignment

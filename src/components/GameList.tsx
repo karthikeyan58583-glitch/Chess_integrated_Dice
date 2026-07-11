@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Users, Swords, ArrowRight, Sparkles, Copy, Check, HelpCircle, Trophy } from 'lucide-react';
 
 interface GameListProps {
-  onJoinGame: (gameId: string) => void;
+  onJoinGame: (gameId: string, preferredColor?: 'w' | 'b' | 'random') => void;
   userStats: { wins: number; losses: number; draws: number };
   arenaUsername?: string;
   arenaPhotoUrl?: string;
@@ -17,6 +17,7 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
   const [joinRoomId, setJoinRoomId] = useState('');
   const [joinError, setJoinError] = useState('');
   const [createdRoomId, setCreatedRoomId] = useState('');
+  const [preferredColor, setPreferredColor] = useState<'w' | 'b' | 'random'>('w');
 
   const handleJoinByCode = async () => {
     let cleanCode = joinRoomId.trim();
@@ -46,6 +47,7 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
     setGeneratingLink(true);
     setLinkError('');
     const roomId = 'room_' + Math.random().toString(36).substring(2, 11);
+    const guestColor = preferredColor === 'w' ? 'b' : (preferredColor === 'b' ? 'w' : 'random');
     try {
       const res = await fetch('/api/server-info');
       const { lanIp, port } = await res.json();
@@ -68,7 +70,7 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
           origin = origin.replace('-dev-', '-pre-');
         }
       }
-      const inviteLink = `${origin}${window.location.pathname}?room=${roomId}`;
+      const inviteLink = `${origin}${window.location.pathname}?room=${roomId}&side=${guestColor}`;
       setCreatedLink(inviteLink);
       setCreatedRoomId(roomId);
       setCopied(false);
@@ -78,7 +80,7 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
       if (origin.includes('-dev-')) {
         origin = origin.replace('-dev-', '-pre-');
       }
-      setCreatedLink(`${origin}${window.location.pathname}?room=${roomId}`);
+      setCreatedLink(`${origin}${window.location.pathname}?room=${roomId}&side=${guestColor}`);
       setCreatedRoomId(roomId);
       setLinkError('Could not determine LAN IP — link may only work on this device.');
     } finally {
@@ -190,6 +192,7 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
                   <button
                     onClick={() => {
                       window.open(createdLink, '_blank');
+                      onJoinGame(createdRoomId, preferredColor);
                     }}
                     className="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-500 active:scale-[0.98] text-white rounded-xl font-sans font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow"
                   >
@@ -202,7 +205,7 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
                   onClick={() => {
                     const urlParams = new URLSearchParams(createdLink.split('?')[1]);
                     const room = urlParams.get('room');
-                    if (room) onJoinGame(room);
+                    if (room) onJoinGame(room, preferredColor);
                   }}
                   className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white rounded-xl font-sans font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow"
                 >
@@ -213,6 +216,47 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="space-y-1.5 mb-2">
+                <span className="text-[10px] font-sans font-bold text-[#989795] uppercase tracking-wider block">
+                  Select Your Side
+                </span>
+                <div className="flex bg-[#1a1917] p-1 rounded-xl border border-[#312e2b] gap-1 select-none">
+                  <button
+                    type="button"
+                    onClick={() => setPreferredColor('w')}
+                    className={`flex-1 py-1.5 rounded-lg text-[11px] font-sans font-bold transition-all cursor-pointer ${
+                      preferredColor === 'w'
+                        ? 'bg-zinc-100 text-zinc-950 font-extrabold shadow'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    White
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreferredColor('random')}
+                    className={`flex-1 py-1.5 rounded-lg text-[11px] font-sans font-bold transition-all cursor-pointer ${
+                      preferredColor === 'random'
+                        ? 'bg-[#81b64c] text-white font-extrabold shadow'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    Random
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreferredColor('b')}
+                    className={`flex-1 py-1.5 rounded-lg text-[11px] font-sans font-bold transition-all cursor-pointer ${
+                      preferredColor === 'b'
+                        ? 'bg-zinc-850 border border-zinc-700 text-white font-extrabold shadow'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    Black
+                  </button>
+                </div>
+              </div>
+
               <button
                 onClick={generateOnlineRoom}
                 disabled={generatingLink}

@@ -98,6 +98,7 @@ export default function App() {
   });
 
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+  const [hostPreferredColor, setHostPreferredColor] = useState<'w' | 'b' | 'random' | null>(null);
   const [rawGameDoc, setRawGameDoc] = useState<any | null>(null);
   const [isAnalyseMode, setIsAnalyseMode] = useState(false);
   const [userStats, setUserStats] = useState(() => {
@@ -155,8 +156,12 @@ export default function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const room = urlParams.get('room');
+    const side = urlParams.get('side') as 'w' | 'b' | 'random' | null;
     if (room) {
       setSelectedGameId(room);
+      if (side) {
+        setHostPreferredColor(side);
+      }
     }
   }, []);
 
@@ -346,7 +351,8 @@ export default function App() {
           roomId: selectedGameId,
           userId: user.uid,
           displayName: user.displayName,
-          photoURL: user.photoURL
+          photoURL: user.photoURL,
+          preferredColor: hostPreferredColor || 'random'
         }));
       };
 
@@ -1338,7 +1344,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[#302e2c] text-white py-8 md:py-12">
         <GameList 
-          onJoinGame={(gameId) => {
+          onJoinGame={(gameId, prefColor) => {
             if (gameId === 'cpu') {
               setSelectedGameId('cpu');
               setRawGameDoc({
@@ -1400,6 +1406,9 @@ export default function App() {
             } else {
               // Connect online
               setSelectedGameId(gameId);
+              if (prefColor) {
+                setHostPreferredColor(prefColor);
+              }
             }
           }} 
           userStats={userStats} 
@@ -1640,7 +1649,7 @@ export default function App() {
                     disabled={gameStatus !== 'playing' || isSpectatingOnly}
                     gameStatus={gameStatus}
                     winner={rawGameDoc?.winner}
-                    orientation={playerColor === 'b' ? 'b' : 'w'}
+                    orientation={selectedGameId === 'local' ? turn : (playerColor === 'b' ? 'b' : 'w')}
                   />
                 </div>
               </div>
