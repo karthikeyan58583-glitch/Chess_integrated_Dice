@@ -1588,55 +1588,60 @@ export default function App() {
             {/* Left Panel: The Chess Board & Player plates connected as a single visual sheet */}
             <div className="col-span-1 md:col-span-8 bg-[#262421] border border-[#312e2b] rounded-2xl shadow-2xl flex flex-col justify-between p-4 pb-3.5 select-none w-full md:h-full">
               
-              {/* Top Player (Black) Plate - Flat transparent bar integrated in sheet */}
-              <div className="w-full flex items-center justify-between bg-transparent border-none select-none pb-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden relative">
-                    {rawGameDoc?.blackPhotoURL ? (
-                      <img 
-                        src={rawGameDoc.blackPhotoURL} 
-                        alt="Black Avatar" 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <span className="text-sm font-sans font-extrabold text-[#efe3cb]">B</span>
-                    )}
-                    {turn === 'b' && (
-                      <div className="absolute inset-0 border-2 border-[#81b64c] rounded-lg animate-pulse" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-sans font-extrabold text-[#efe3cb] truncate leading-none">
-                        {rawGameDoc?.blackName || 'Guest Black'}
-                      </span>
-                      {turn === 'b' && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      )}
-                    </div>
-                    <span className="text-[10px] font-sans text-[#989795] block mt-0.5 leading-none">
-                      Black Pieces
-                    </span>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-right">
-                    <span className="text-[9px] uppercase tracking-wider text-[#989795] font-sans font-bold block leading-none">Alloc</span>
-                    <span className="text-sm font-sans font-extrabold text-[#caa469] mt-0.5 block leading-none text-right">
-                      {turn === 'b' ? (diceRoll || (gameState.blackTurnCount <= 5 ? 1 : 'Roll')) : '-'}
-                    </span>
+              {/* Top Player Plate - always shows the OPPONENT */}
+              {(() => {
+                // In online mode: top = opponent. In local/cpu: top = black.
+                const isOnline = selectedGameId !== 'local' && selectedGameId !== 'cpu';
+                const myColor = isOnline ? playerColor : 'w';
+                const opponentIsBlack = myColor === 'w' || !isOnline;
+                const topName = opponentIsBlack ? (rawGameDoc?.blackName || 'Guest Black') : (rawGameDoc?.whiteName || 'Guest White');
+                const topPhoto = opponentIsBlack ? rawGameDoc?.blackPhotoURL : rawGameDoc?.whitePhotoURL;
+                const topFallback = opponentIsBlack ? 'B' : 'W';
+                const topTurn = opponentIsBlack ? 'b' : 'w';
+                const topAlloc = topTurn === 'b' ? (diceRoll || (gameState.blackTurnCount <= 5 ? 1 : 'Roll')) : (diceRoll || (gameState.whiteTurnCount <= 5 ? 1 : 'Roll'));
+                const topRem = movesRemaining;
+                return (
+                  <div className="w-full flex items-center justify-between bg-transparent border-none select-none pb-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg ${opponentIsBlack ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-200'} border flex items-center justify-center shrink-0 overflow-hidden relative`}>
+                        {topPhoto ? (
+                          <img src={topPhoto} alt="Opponent Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                          <span className={`text-sm font-sans font-extrabold ${opponentIsBlack ? 'text-[#efe3cb]' : 'text-zinc-900'}`}>{topFallback}</span>
+                        )}
+                        {turn === topTurn && (
+                          <div className="absolute inset-0 border-2 border-[#81b64c] rounded-lg animate-pulse" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-sans font-extrabold text-[#efe3cb] truncate leading-none">{topName}</span>
+                          {turn === topTurn && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+                        </div>
+                        <span className="text-[10px] font-sans text-[#989795] block mt-0.5 leading-none">
+                          {opponentIsBlack ? 'Black Pieces' : 'White Pieces'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <span className="text-[9px] uppercase tracking-wider text-[#989795] font-sans font-bold block leading-none">Alloc</span>
+                        <span className="text-sm font-sans font-extrabold text-[#caa469] mt-0.5 block leading-none text-right">
+                          {turn === topTurn ? topAlloc : '-'}
+                        </span>
+                      </div>
+                      <div className="h-5 w-px bg-[#312e2b]" />
+                      <div className="text-right">
+                        <span className="text-[9px] uppercase tracking-wider text-[#989795] font-sans font-bold block leading-none">Rem</span>
+                        <span className={`text-sm font-sans font-extrabold mt-0.5 block leading-none text-right ${turn === topTurn ? 'text-emerald-400' : 'text-[#989795]'}`}>
+                          {turn === topTurn ? topRem : '0'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="h-5 w-px bg-[#312e2b]" />
-                  <div className="text-right">
-                    <span className="text-[9px] uppercase tracking-wider text-[#989795] font-sans font-bold block leading-none">Rem</span>
-                    <span className={`text-sm font-sans font-extrabold mt-0.5 block leading-none text-right ${turn === 'b' ? 'text-emerald-400' : 'text-[#989795]'}`}>
-                      {turn === 'b' ? movesRemaining : '0'}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Chessboard Viewport */}
               <div className="flex-1 min-h-0 flex items-center justify-center relative my-1">
@@ -1648,7 +1653,10 @@ export default function App() {
                     movesRemaining={movesRemaining}
                     onMoveSelected={handleMoveSelected}
                     isKingChecked={isKingInCheck(board, turn)}
-                    disabled={gameStatus !== 'playing' || isSpectatingOnly}
+                    disabled={gameStatus !== 'playing' || isSpectatingOnly || (
+                      selectedGameId !== 'local' && selectedGameId !== 'cpu' &&
+                      playerColor !== null && turn !== playerColor
+                    )}
                     gameStatus={gameStatus}
                     winner={rawGameDoc?.winner}
                     orientation={selectedGameId === 'local' ? turn : (playerColor === 'b' ? 'b' : 'w')}
@@ -1656,55 +1664,58 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Bottom Player (White) Plate - Flat transparent bar integrated in sheet */}
-              <div className="w-full flex items-center justify-between bg-transparent border-none select-none pt-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-white border border-zinc-200 flex items-center justify-center shrink-0 overflow-hidden relative">
-                    {rawGameDoc?.whitePhotoURL ? (
-                      <img 
-                        src={rawGameDoc.whitePhotoURL} 
-                        alt="White Avatar" 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <span className="text-sm font-sans font-semibold text-zinc-900">W</span>
-                    )}
-                    {turn === 'w' && (
-                      <div className="absolute inset-0 border-2 border-[#81b64c] rounded-lg animate-pulse" />
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-sans font-extrabold text-[#efe3cb] truncate leading-none">
-                        {rawGameDoc?.whiteName || 'Guest White'}
-                      </span>
-                      {turn === 'w' && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      )}
+              {/* Bottom Player Plate - always shows YOU */}
+              {(() => {
+                const isOnline = selectedGameId !== 'local' && selectedGameId !== 'cpu';
+                const myColor = isOnline ? playerColor : 'w';
+                const myIsWhite = myColor === 'w' || !isOnline;
+                const myName = myIsWhite ? (rawGameDoc?.whiteName || 'Guest White') : (rawGameDoc?.blackName || 'Guest Black');
+                const myPhoto = myIsWhite ? rawGameDoc?.whitePhotoURL : rawGameDoc?.blackPhotoURL;
+                const myFallback = myIsWhite ? 'W' : 'B';
+                const myTurn = myIsWhite ? 'w' : 'b';
+                const myAlloc = myTurn === 'w' ? (diceRoll || (gameState.whiteTurnCount <= 5 ? 1 : 'Roll')) : (diceRoll || (gameState.blackTurnCount <= 5 ? 1 : 'Roll'));
+                const myRem = movesRemaining;
+                return (
+                  <div className="w-full flex items-center justify-between bg-transparent border-none select-none pt-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg ${myIsWhite ? 'bg-white border-zinc-200' : 'bg-zinc-950 border-zinc-800'} border flex items-center justify-center shrink-0 overflow-hidden relative`}>
+                        {myPhoto ? (
+                          <img src={myPhoto} alt="My Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                          <span className={`text-sm font-sans font-semibold ${myIsWhite ? 'text-zinc-900' : 'text-[#efe3cb]'}`}>{myFallback}</span>
+                        )}
+                        {turn === myTurn && (
+                          <div className="absolute inset-0 border-2 border-[#81b64c] rounded-lg animate-pulse" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-sans font-extrabold text-[#efe3cb] truncate leading-none">{myName}</span>
+                          {turn === myTurn && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+                        </div>
+                        <span className="text-[10px] font-sans text-[#989795] block mt-0.5 leading-none">
+                          {myIsWhite ? 'White Pieces' : 'Black Pieces'}
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-sans text-[#989795] block mt-0.5 leading-none">
-                      White Pieces
-                    </span>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <span className="text-[9px] uppercase tracking-wider text-[#989795] font-sans font-bold block leading-none">Alloc</span>
+                        <span className="text-sm font-sans font-extrabold text-[#caa469] mt-0.5 block leading-none text-right">
+                          {turn === myTurn ? myAlloc : '-'}
+                        </span>
+                      </div>
+                      <div className="h-5 w-px bg-[#312e2b]" />
+                      <div className="text-right">
+                        <span className="text-[9px] uppercase tracking-wider text-[#989795] font-sans font-bold block leading-none">Rem</span>
+                        <span className={`text-sm font-sans font-extrabold mt-0.5 block leading-none text-right ${turn === myTurn ? 'text-emerald-400' : 'text-[#989795]'}`}>
+                          {turn === myTurn ? myRem : '0'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-right">
-                    <span className="text-[9px] uppercase tracking-wider text-[#989795] font-sans font-bold block leading-none">Alloc</span>
-                    <span className="text-sm font-sans font-extrabold text-[#caa469] mt-0.5 block leading-none text-right">
-                      {turn === 'w' ? (diceRoll || (gameState.whiteTurnCount <= 5 ? 1 : 'Roll')) : '-'}
-                    </span>
-                  </div>
-                  <div className="h-5 w-px bg-[#312e2b]" />
-                  <div className="text-right">
-                    <span className="text-[9px] uppercase tracking-wider text-[#989795] font-sans font-bold block leading-none">Rem</span>
-                    <span className={`text-sm font-sans font-extrabold mt-0.5 block leading-none text-right ${turn === 'w' ? 'text-emerald-400' : 'text-[#989795]'}`}>
-                      {turn === 'w' ? movesRemaining : '0'}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
             </div>
 
