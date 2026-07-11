@@ -400,16 +400,17 @@ export default function App() {
                 setOpponentConnected(true);
               }
             } else {
-              // We are the creator (White)
+              // We are the first player (creator) — assigned color is already set above
+              const assignedAsWhite = data.color === 'w';
               const initialState = {
                 opponentType: 'online',
                 creatorId: user.uid,
-                whiteId: user.uid,
-                blackId: '',
-                whiteName: user.displayName,
-                whitePhotoURL: user.photoURL,
-                blackName: 'Waiting for opponent...',
-                blackPhotoURL: '',
+                whiteId: assignedAsWhite ? user.uid : '',
+                blackId: assignedAsWhite ? '' : user.uid,
+                whiteName: assignedAsWhite ? user.displayName : 'Waiting for opponent...',
+                whitePhotoURL: assignedAsWhite ? user.photoURL : '',
+                blackName: assignedAsWhite ? 'Waiting for opponent...' : user.displayName,
+                blackPhotoURL: assignedAsWhite ? '' : user.photoURL,
                 status: 'waiting',
                 statusMessage: 'Share the link above with a friend to start playing!',
                 board: initializeBoard(),
@@ -1328,16 +1329,17 @@ export default function App() {
   const isWhiteActive = turn === 'w';
   const totalTurnsPlayed = history?.length || 0;
 
-  // Iframe spectator restrictions helper flag
+  // Spectator flag: use assigned playerColor as source of truth (server assigns w/b to real players)
   const isSpectatingOnly = useMemo(() => {
-    if (!rawGameDoc) return false;
     if (isAnalyseMode) return true;
-    if (rawGameDoc.opponentType === 'online') {
-      const isPart = rawGameDoc.whiteId === user?.uid || rawGameDoc.blackId === user?.uid;
-      return !isPart;
+    // If we have an explicit server-assigned player color, we're a participant
+    if (playerColor === 'w' || playerColor === 'b') return false;
+    // Spectator color or no color yet on an online game
+    if (selectedGameId && selectedGameId !== 'local' && selectedGameId !== 'cpu') {
+      return playerColor === 'spectator';
     }
     return false;
-  }, [rawGameDoc, user, isAnalyseMode]);
+  }, [playerColor, selectedGameId, isAnalyseMode]);
 
   // Game list router page
   if (!selectedGameId) {

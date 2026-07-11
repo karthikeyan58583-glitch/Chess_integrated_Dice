@@ -180,7 +180,7 @@ export function GameList({ onJoinGame, userStats }: GameListProps) {
 
               {!linkError && (
                 <p className="text-[11px] text-emerald-400/80 leading-relaxed bg-emerald-500/5 p-2 rounded border border-emerald-500/15">
-                  📡 Share this link with a friend on the <strong>same Wi-Fi</strong>. They can open it on any device!
+                  🌐 Share this link with anyone — friends on the same network or anywhere in the world can join!
                 </p>
               )}
 
