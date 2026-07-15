@@ -84,11 +84,12 @@ const INITIAL_GAME_STATE: GameState = {
 
 export default function App() {
   // Local client-side authentication and navigation state
+  // Use localStorage so identity persists across page reloads / re-joins
   const [user] = useState(() => {
-    let id = sessionStorage.getItem('dice_chess_user_id');
+    let id = localStorage.getItem('dice_chess_user_id');
     if (!id) {
       id = 'player_' + Math.random().toString(36).substring(2, 11);
-      sessionStorage.setItem('dice_chess_user_id', id);
+      localStorage.setItem('dice_chess_user_id', id);
     }
     return {
       uid: id,
@@ -132,6 +133,14 @@ export default function App() {
   const [repetitionHashes, setRepetitionHashes] = useState<string[]>([]);
   const [drawProposal, setDrawProposal] = useState<{ proposedBy: Color } | null>(null);
 
+  // Reconnection countdown state
+  const [reconnectSecondsLeft, setReconnectSecondsLeft] = useState<number | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Stable refs to avoid stale closures inside the countdown interval
+  const gameStatusRef = useRef<string>('playing');
+  const rawGameDocRef = useRef<any | null>(null);
+  const selectedGameIdRef = useRef<string | null>(null);
+
   // Active status variables
   const {
     board,
@@ -151,6 +160,11 @@ export default function App() {
     blackRookKMoved,
     blackRookQMoved
   } = gameState;
+
+  // Keep stable refs in sync with state for countdown closures
+  useEffect(() => { gameStatusRef.current = gameStatus; }, [gameStatus]);
+  useEffect(() => { rawGameDocRef.current = rawGameDoc; }, [rawGameDoc]);
+  useEffect(() => { selectedGameIdRef.current = selectedGameId; }, [selectedGameId]);
 
   // Handle initial load with room URL parameter
   useEffect(() => {
@@ -478,16 +492,14 @@ export default function App() {
 
           if (data.type === 'opponent_joined') {
             setOpponentConnected(true);
+            // Stop reconnection countdown if running
+            if (reconnectTimerRef.current) {
+              clearInterval(reconnectTimerRef.current);
+              reconnectTimerRef.current = null;
+            }
+            setReconnectSecondsLeft(null);
             // IMPORTANT: only (re)build the RTCPeerConnection here if we
             // don't already have one actively handshaking or connected.
-            // 'joined' already calls setupWebRTC once for this client, and
-            // that offer/answer exchange can complete *before* this
-            // 'opponent_joined' message arrives (it's a separate, later
-            // WS message). Unconditionally calling setupWebRTC again here
-            // used to close and replace the peer connection mid-handshake,
-            // which silently killed the data channel the moment it was
-            // about to open -- this was the main cause of two players
-            // failing to link up / falling back to a laggy state.
             const dc = dcRef.current;
             const dcIsLive = dc && (dc.readyState === 'open' || dc.readyState === 'connecting');
             if (playerColorRef.current === 'w' && !dcIsLive) {
@@ -570,6 +582,51 @@ export default function App() {
                 whiteName: playerColor === 'b' ? 'Waiting for opponent...' : prev.whiteName,
               };
             });
+
+            // Start 60-second reconnection countdown
+            if (reconnectTimerRef.current) clearInterval(reconnectTimerRef.current);
+            setReconnectSecondsLeft(60);
+            let remaining = 60;
+            reconnectTimerRef.current = setInterval(async () => {
+              remaining -= 1;
+              setReconnectSecondsLeft(remaining);
+              if (remaining <= 0) {
+                clearInterval(reconnectTimerRef.current!);
+                reconnectTimerRef.current = null;
+                setReconnectSecondsLeft(null);
+                // Forfeit: the remaining player wins
+                const doc = rawGameDocRef.current;
+                const myColor = playerColorRef.current;
+                const isGameOver = ['checkmate', 'stalemate', 'insufficient_material',
+                  'threefold_repetition', 'fifty_moves_draw', 'agreed_draw', 'resigned']
+                  .includes(gameStatusRef.current);
+                if (doc && myColor && !isGameOver) {
+                  const winnerColor = myColor;
+                  const winnerName = winnerColor === 'w'
+                    ? (doc.whiteName || 'White')
+                    : (doc.blackName || 'Black');
+                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                    const forfeitState = {
+                      ...doc,
+                      status: 'resigned',
+                      statusMessage: `Opponent left the match. ${winnerName} wins by forfeit!`,
+                      winner: winnerColor
+                    };
+                    wsRef.current.send(JSON.stringify({
+                      type: 'game_state_update',
+                      roomId: selectedGameIdRef.current,
+                      gameState: forfeitState
+                    }));
+                    setRawGameDoc(forfeitState);
+                    setGameState(prev => ({
+                      ...prev,
+                      gameStatus: 'resigned',
+                      statusMessage: forfeitState.statusMessage
+                    }));
+                  }
+                }
+              }
+            }, 1000);
           }
 
           if (data.type === 'reset') {
@@ -1264,6 +1321,20 @@ export default function App() {
 
   // Back to study lobby exit trigger
   const handleExitToLobby = () => {
+    const isOnlineGame = selectedGameId && selectedGameId !== 'local' && selectedGameId !== 'cpu';
+    const isActive = rawGameDoc && rawGameDoc.status === 'playing';
+    if (isOnlineGame && isActive) {
+      const confirmed = window.confirm(
+        'Are you sure you want to leave the match?\n\nIf you leave, a 1-minute countdown will start. If you don\'t rejoin in time, your opponent wins.'
+      );
+      if (!confirmed) return;
+    }
+    // Clear any running countdown
+    if (reconnectTimerRef.current) {
+      clearInterval(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+    setReconnectSecondsLeft(null);
     setSelectedGameId(null);
     setRawGameDoc(null);
     setIsAnalyseMode(false);
@@ -1532,6 +1603,16 @@ export default function App() {
           <div className="w-full bg-[#1b0b04] border border-amber-900/40 text-amber-200/90 py-2.5 px-4 rounded-xl text-xs font-serif italic text-center flex items-center justify-center gap-2 shadow-inner">
             <CircleDot className="w-4 h-4 text-[#caa469] animate-pulse" />
             <span>Spectator Study View Mode. Real-time updates active. Interactions Disabled.</span>
+          </div>
+        )}
+
+        {/* Reconnection Countdown Banner */}
+        {reconnectSecondsLeft !== null && (
+          <div className="w-full bg-rose-950/80 border border-rose-500/40 text-rose-200 py-3 px-4 rounded-xl text-xs text-center flex items-center justify-center gap-2.5 shadow-md animate-pulse">
+            <CircleDot className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>
+              ⚠️ <strong>Opponent disconnected.</strong> They have <strong>{reconnectSecondsLeft}s</strong> to return — or you win by forfeit.
+            </span>
           </div>
         )}
 
