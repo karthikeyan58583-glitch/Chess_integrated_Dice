@@ -376,6 +376,21 @@ async function startServer() {
           }
         }
 
+        if (type === "player_leaving") {
+          // Explicit early-exit notification sent before the page unloads.
+          // This fires before the WS TCP close event so the other player is
+          // notified immediately (tab close / browser back button, etc.)
+          if (currentRoomId) {
+            const room = rooms.get(currentRoomId);
+            if (room) {
+              const otherPlayer = playerColor === 'w' ? room.players.black : room.players.white;
+              if (otherPlayer && otherPlayer.readyState === WebSocket.OPEN) {
+                otherPlayer.send(JSON.stringify({ type: "opponent_disconnected" }));
+              }
+            }
+          }
+        }
+
       } catch (err) {
         console.error("WebSocket message parsing error:", err);
       }

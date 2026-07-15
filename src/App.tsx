@@ -505,14 +505,25 @@ export default function App() {
             if (playerColorRef.current === 'w' && !dcIsLive) {
               setupWebRTC('w');
             }
+            // Only update to 'playing' if the game has NOT already ended.
+            // Prevents opponent_joined from wiping a forfeit/checkmate result.
+            const GAME_OVER_STATUSES = [
+              'checkmate', 'stalemate', 'insufficient_material',
+              'threefold_repetition', 'fifty_moves_draw', 'agreed_draw', 'resigned'
+            ];
             setRawGameDoc(prev => {
               if (!prev) return prev;
+              if (GAME_OVER_STATUSES.includes(prev.status)) return prev; // preserve result
               return {
                 ...prev,
                 blackName: 'Opponent (Black)',
                 status: 'playing',
                 statusMessage: "White's Turn (Phase 1: Automatic 1 move. No roll needed!)"
               };
+            });
+            setGameState(prev => {
+              if (GAME_OVER_STATUSES.includes(prev.gameStatus)) return prev; // preserve result
+              return prev; // no other changes needed here
             });
           }
 
@@ -677,6 +688,12 @@ export default function App() {
 
     return () => {
       isDisposed = true;
+      // Signal to the other player before WS actually closes
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        try {
+          wsRef.current.send(JSON.stringify({ type: 'player_leaving', roomId: selectedGameId }));
+        } catch (_) {}
+      }
       if (wsRef.current) {
         wsRef.current.close();
       }
@@ -692,6 +709,26 @@ export default function App() {
       setWsConnected(false);
       clearTimeout(reconnectTimeout);
     };
+  }, [selectedGameId]);
+
+  // Notify the server when the page is being unloaded (tab close, browser back, refresh)
+  // This ensures the countdown starts for the remaining player even without going through the lobby
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (
+        wsRef.current &&
+        wsRef.current.readyState === WebSocket.OPEN &&
+        selectedGameId &&
+        selectedGameId !== 'local' &&
+        selectedGameId !== 'cpu'
+      ) {
+        try {
+          wsRef.current.send(JSON.stringify({ type: 'player_leaving', roomId: selectedGameId }));
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [selectedGameId]);
 
   // Track state hashes for threefold repetition without duplicating on server state syncs
